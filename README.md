@@ -1,3 +1,3 @@
 # ggplot2Practice
 
-Reference: Data Visualization in R with ggplot2 from LinkedIn Learning, \url{linkedin.com/learning/data-visualization-in-r-with-ggplot2}
+Reference: Data Visualization in R with ggplot2 from LinkedIn Learning, linkedin.com/learning/data-visualization-in-r-with-ggplot2
