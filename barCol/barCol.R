@@ -1,7 +1,6 @@
 ## ggplot2 -- Bar(y=count) and column plot
 
 library(ggplot2)
-library(tidyverse)
 
 # Bar plot of different race.
 ggplot(data=nhanes) +
