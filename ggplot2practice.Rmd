@@ -1,0 +1,360 @@
+---
+title: "ggplot2practice"
+author: "Yao Jiang"
+date: "1/8/2021"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read data.
+
+```{r read data, echo=FALSE}
+library(ggplot2)
+library(tidyverse)
+data <- read.csv('~/Documents/UW/514 biostat 1/data/nhaneslarge.csv')
+# summary(data)
+```
+
+## Correcting data.
+
+```{r correcting, echo=FALSE, warning=F}
+nhanes <- data %>%
+  mutate(BPXDI1=as.numeric(BPXDI1), BPXDI2=as.numeric(BPXDI2),
+         race_ethc=as.factor(race_ethc), gender=as.factor(gender),
+         BMXBMI=as.numeric(BMXBMI))
+# summary(nhanes)
+```
+
+## point
+
+```{r point, echo=FALSE, warning=F, message=F}
+ggplot(data=nhanes) +
+  geom_point(mapping = aes(x=BMXBMI, y=DR1TFOLA, shape=gender))
+
+ggplot(data=nhanes) +
+  geom_point(mapping = aes(x=BMXBMI, y=DR1TFOLA, color=gender))
+
+ggplot(data=nhanes) +
+  geom_point(mapping = aes(x=BMXBMI, y=DR1TFOLA, color=gender,
+                           size=race_ethc))
+
+ggplot(data=nhanes) +
+  geom_point(mapping = aes(x=BMXBMI, y=DR1TFOLA, color=gender,
+                           size=race_ethc), alpha=1/2)
+```
+
+## line
+
+```{r line, echo=FALSE, warning=F, message=F}
+ggplot(data=nhanes) +
+  geom_line(mapping = aes(x=BMXBMI, y=DR1TFOLA, color=gender)) +
+  geom_point(mapping = aes(x=BMXBMI, y=DR1TFOLA, color=gender))
+
+ggplot(data=nhanes, mapping=aes(x=BMXBMI, y=DR1TFOLA, color=gender)) +
+  geom_line() + 
+  geom_point()
+
+ggplot(data=nhanes, mapping=aes(x=BMXBMI, y=DR1TFOLA, color=gender)) +
+  geom_smooth(se=FALSE) + 
+  geom_point(alpha=1/10)
+```
+
+## bar(y=count) and column
+
+```{r bar and column, echo=FALSE}
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, color=gender))
+
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender))
+
+# Calculate mean BMXBMI in each race_ethc group
+mean_bmi <- tapply(nhanes$BMXBMI, nhanes$race_ethc, mean, na.rm = T)
+# Create tibble with race and corresponding mean BMXBMI
+tibble(race = names(mean_bmi), meanBMI = mean_bmi) %>%
+  ggplot() +
+  # Column plot: y is mean BMXBMI and x is each race group
+  geom_col(mapping=aes(x=race, y=meanBMI))
+```
+
+## hist, group and frequency
+
+```{r hist, echo=FALSE, message=F, warning=F}
+ggplot(data=nhanes) +
+  geom_histogram(mapping=aes(x=BMXBMI))
+
+ggplot(data=nhanes) +
+  geom_histogram(mapping=aes(x=BMXBMI), boundary=0) # start from 0
+
+ggplot(data=nhanes) +
+  geom_histogram(mapping=aes(x=BMXBMI), binwidth=3, boundary=0)
+```
+
+## boxplot
+
+```{r boxplot, warning=F}
+ggplot(data=nhanes)+
+  geom_point(mapping=aes(x=gender, y=BMXBMI))
+
+ggplot(data=nhanes)+
+  geom_jitter(mapping=aes(x=gender, y=BMXBMI))
+
+ggplot(data=nhanes)+
+  geom_boxplot(mapping=aes(x=race_ethc, y=BMXBMI, color=gender))
+```
+
+## theme: change background and legend position
+
+```{r change background, echo=FALSE}
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender)) + 
+  theme(plot.background = element_rect(fill='grey')) # theme: change background
+
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender)) +
+  theme(panel.background=element_rect(fill='grey'))
+
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender))+
+  theme(plot.background=element_blank())+
+  theme(panel.background=element_blank())
+
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender)) +
+  theme(panel.background=element_blank()) +
+  theme(panel.background=element_blank()) +
+  theme(panel.grid.major=element_line(color='grey'))
+
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender)) +
+  theme(panel.background=element_blank()) +
+  theme(panel.background=element_blank()) +
+  theme(panel.grid.major.y=element_line(color='grey'))
+```
+
+## change x and y axes
+
+```{r work with axes, echo=FALSE, warning=F}
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender))+
+  theme(plot.background=element_blank())+
+  theme(panel.background=element_blank())+
+  ylab('number of people') +
+  xlab('races') +
+  ylim(0, 500)
+```
+
+## change scale: axes, limits, colors
+
+```{r scale, echo=FALSE}
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender))+
+  theme(plot.background=element_blank())+
+  theme(panel.background=element_blank())+
+  theme(panel.grid.major=element_line(color='grey', linetype = 1)) +
+  theme(panel.grid.minor = element_line(color='grey', linetype = 2)) +
+  scale_x_discrete(name='races') +
+  scale_y_continuous(name='number of people', limits = c(0, 800)) +
+  scale_fill_manual(values = c('orange', 'chocolate'))
+```
+
+## change scale: legend
+
+```{r legend, echo=FALSE}
+ggplot(data=nhanes) +
+  geom_bar(mapping=aes(x=race_ethc, fill=gender))+
+  theme(plot.background=element_blank())+
+  theme(panel.background=element_blank())+
+  theme(panel.grid.major=element_line(color='grey', linetype = 1)) +
+  theme(panel.grid.minor = element_line(color='grey', linetype = 2)) +
+  scale_x_discrete(name='races') +
+  scale_y_continuous(name='number of people', limits = c(0, 800)) +
+  scale_fill_manual(values = c('orange', 'chocolate'),
+                    guide = guide_legend(title='gender type', #change legend name
+                                         nrow = 1, # how to display legend
+                                         label.position = 'bottom',
+                                         keywidth = 1)) +
+  theme(legend.position = 'top')
+```
+
+## Annotation functions
+
+```{r annotation, echo=F, warning=F}
+ggplot(data=nhanes, mapping=aes(x=BMXBMI, y=DR1TFOLA, color=gender)) +
+  geom_point(alpha=5/10) +
+  annotate('text', label='both high', x = 52, y = 1300) +
+  geom_hline(yintercept=mean(nhanes$DR1TFOLA)) + # horizontal line
+  annotate('text', label='mean dr1tfola', x = 52, y = 500) +
+  geom_vline(xintercept=mean(nhanes$BMXBMI, na.rm=T)) +
+  annotate('text', label='mean BMXBMI', x = 35, y = 1600) +
+  theme(legend.key = element_blank()) +
+  scale_color_discrete(name='gender type') + # change legend name
+  ggtitle('this is a title', subtitle = 'this is a sub')
+```
+## Predefined themes
+
+```{r themes, echo=F, warning=F}
+library(ggthemes)
+ggplot(data=nhanes, mapping=aes(x=BMXBMI, y=DR1TFOLA, color=gender)) +
+  geom_point(alpha=5/10) +
+  theme_wsj()
+```
+
+## Maps
+
+```{r maps setup, echo=F}
+library(ggmap)
+```
+
+```{r hide, include=FALSE}
+register_google(key='*************************') ## hide key##
+```
+
+```{r maps, echo=F, message=F, warning=F}
+qmap('New York, NY', zoom=10)
+nyc_map <- get_map('New York, NY', zoom = 15)
+ggmap(nyc_map)
+
+# geo code: latitude and longitude
+nyc <- geocode('New York, NY')
+lynda <- geocode('Lynda.com') # company
+whitehouse <- geocode('white house') # place
+
+lynda_map <- get_map(lynda, zoom = 18)
+ggmap(lynda_map)
+
+ggmap(get_map(nyc, maptype = 'roadmap'))
+ggmap(get_map(nyc, maptype = 'hybrid'))
+ggmap(get_map(nyc, maptype = 'toner'))
+ggmap(get_map(nyc, maptype = 'watercolor'))
+
+# add point on the map
+ggmap(get_map('United States', zoom = 4)) +
+  geom_point(mapping=aes(x=lon, y=lat), color='red', data=nyc)
+
+placenames <- c('New York, NY', 'White House', 'Lynda.com',
+                'Mt. Rushmore', 'The Alamo',
+                'University of Washington')
+locations <- geocode(placenames)
+# create a new tibble with names(label)
+locations_name <- tibble(name=placenames, 
+                         lat=locations$lat, lon=locations$lon)
+ggmap(get_map('United States', zoom = 4, maptype = 'watercolor')) +
+  geom_point(mapping = aes(x=lon, y=lat), 
+             color='red', data=locations_name) +
+  geom_text(mapping = aes(x=lon, y=lat, label=name),
+            color='red', data=locations_name, nudge_y=1)
+```
+
+```{r use map to do visualization, echo=F, message=F, warning=F}
+states <- map_data('state')
+
+ggplot(data = states, mapping = aes(x=long, y=lat, group=group)) +
+  geom_polygon() +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank())
+```
+
+```{r state data visualization, echo=F, message=F, warning=F}
+college <- read_csv('http://672258.youcanlearnit.net/college.csv')
+college <- college %>%
+  mutate(state=as.factor(state),
+         region=as.factor(region),
+         highest_degree=as.factor(highest_degree),
+         control=as.factor(control),
+         gender=as.factor(gender),
+         loan_default_rate=as.numeric(loan_default_rate),
+         tuition=as.numeric(tuition))
+
+college_summary <- group_by(college, state) %>%
+  summarise_each(list(mean_tuition = mean), tuition)
+
+college_summary <- college_summary %>%
+  mutate(region=setNames(str_to_lower(state.name),
+                         state.abb)[as.character(state)])
+
+college_summary <- college_summary %>%
+  mutate(region=ifelse(as.character(state)=='DC', 
+                       'district of columbia', region))
+
+mapdata <- merge(states, college_summary, by='region')
+
+ggplot(data = mapdata, mapping = aes(x=long, y=lat, group=region,
+                                     fill=mean_tuition)) +
+  geom_polygon() +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank()) +
+  scale_fill_gradient(low='beige', high='red')
+```
+
+```{r college on map, echo=F, message=F, warning=F}
+ggplot(data = states) +
+  geom_polygon(mapping = aes(x=long, y=lat, group=region), 
+               color='grey', fill='beige') +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        plot.background = element_blank()) +
+  geom_point(mapping = aes(x=lon, y=lat), data = college)
+```
+
+```{r filter, echo=F, message=F, warning=F}
+# filter colleges in AK and HI
+college <- college %>%
+  filter(state!='AK' & state!='HI')
+
+ggplot(data = states) +
+  geom_polygon(mapping = aes(x=long, y=lat, group=region), 
+               color='grey', fill='beige') +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        plot.background = element_blank()) +
+  geom_point(mapping = aes(x=lon, y=lat, color=control, size=undergrads), data = college)      # size: point size based on undergrads populations
+```
+
+```{r zoom in to investigate California, echo=F, message=F, warning=F}
+california <- map_data(map='county', region='california')
+
+california_college <- college %>%
+  filter(state=='CA')
+
+ggplot(data = california) +
+  geom_polygon(mapping = aes(x=long, y=lat, group=group), 
+               color='grey', fill='beige') +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        plot.background = element_blank()) +
+  geom_point(mapping = aes(x=lon, y=lat, color=control, size=undergrads), data = california_college, alpha=0.5)
+
+# add major city names on the plot
+city_names <- c('Los Angeles', 'San Diego', 'San Francisco', 'San Jose', 'Fresno', 'Sacramento')
+locations <- geocode(city_names)
+cities <- tibble(name=city_names, lat=locations$lat, lon=locations$lon)
+
+ggplot(data = california) +
+  geom_polygon(mapping = aes(x=long, y=lat, group=group), 
+               color='grey', fill='beige') +
+  theme(panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        plot.background = element_blank()) +
+  geom_point(mapping = aes(x=lon, y=lat, color=control, size=undergrads), data = california_college, alpha=0.5) +
+  geom_text(data = cities, mapping = aes(x=lon, y=lat, label=name)) +
+  scale_size_continuous(name='undergraduate population') +
+  scale_color_discrete(name='institutional control') +
+  theme(legend.key = element_blank())
+```
